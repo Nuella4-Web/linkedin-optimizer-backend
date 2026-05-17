@@ -1,0 +1,20 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.log
+
+## Secrets — never commit these
+appsettings.Development.json
+appsettings.*.json.bak
+*.pfx
+*.p12
+
+## EF migrations output (keep migrations, ignore snapshots if needed)
+# Uncomment if you want to exclude:
+# src/LinkedInOptimizer.Infrastructure/Migrations/
+
+## Publish output
+publish/
