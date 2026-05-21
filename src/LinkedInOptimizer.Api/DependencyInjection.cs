@@ -5,7 +5,7 @@ using AspNetCoreRateLimit;
 using LinkedInOptimizer.Api.Middleware;
 using LinkedInOptimizer.Api.Services;
 using LinkedInOptimizer.Application.Common.Interfaces;
-using LinkedInOptimizer.Application.Common.Options;
+using LinkedInOptimizer.Infrastructure.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
