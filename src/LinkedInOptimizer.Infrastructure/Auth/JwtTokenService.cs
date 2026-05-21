@@ -5,9 +5,9 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using LinkedInOptimizer.Application.Common.Interfaces;
-using LinkedInOptimizer.Application.Common.Options;
+using LinkedInOptimizer.Infrastructure.Options;
 using LinkedInOptimizer.Domain.Entities;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
 namespace LinkedInOptimizer.Infrastructure.Auth;
@@ -16,9 +16,9 @@ public class JwtTokenService : IJwtTokenService
 {
     private readonly JwtOptions _options;
 
-    public JwtTokenService(IOptions<JwtOptions> options)
+    public JwtTokenService(IConfiguration configuration)
     {
-        _options = options.Value;
+        _options = configuration.GetSection("Jwt").Get<JwtOptions>() ?? new JwtOptions();
     }
 
     public string GenerateAccessToken(User user)
