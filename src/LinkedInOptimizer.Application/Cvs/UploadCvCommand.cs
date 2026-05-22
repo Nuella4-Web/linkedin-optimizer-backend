@@ -56,18 +56,24 @@ public class UploadCvCommandHandler : IRequestHandler<UploadCvCommand, CvDto>
         if (command.FileSizeBytes > MaxFileSizeBytes)
             throw new BusinessRuleViolationException("CV file must not exceed 10 MB.");
 
-        // 3. Select parser by MIME type
+        // 3. Read entire stream into memory once
+        using var memoryStream = new MemoryStream();
+        await command.FileStream.CopyToAsync(memoryStream, cancellationToken);
+        memoryStream.Position = 0;
+
+        // 4. Select parser by MIME type
         var parser = command.MimeType.Equals("application/pdf", StringComparison.OrdinalIgnoreCase)
             ? _pdfParser
             : _docxParser;
 
-        // 4. Parse the CV file
-        var parsedJson = await parser.ParseAsync(command.FileStream, cancellationToken);
+        // 5. Parse the CV file
+        var parsedJson = await parser.ParseAsync(memoryStream, cancellationToken);
 
-        // 5. Upload to Cloudinary
-        var publicId = await _cloudinaryClient.UploadRawAsync(command.FileStream, command.FileName, cancellationToken);
+        // 6. Reset stream and upload to Cloudinary
+        memoryStream.Position = 0;
+        var publicId = await _cloudinaryClient.UploadRawAsync(memoryStream, command.FileName, cancellationToken);
 
-        // 6. Remove existing CV for this user if present
+        // 7. Remove existing CV for this user if present
         var existing = await _cvRepository.GetByUserIdAsync(command.UserId, cancellationToken);
         if (existing is not null)
         {
@@ -75,16 +81,16 @@ public class UploadCvCommandHandler : IRequestHandler<UploadCvCommand, CvDto>
             await _cvRepository.RemoveAsync(existing, cancellationToken);
         }
 
-        // 7. Create new CV entity
+        // 8. Create new CV entity
         var cv = Cv.Create(command.UserId, publicId, command.FileName, parsedJson);
 
-        // 8. Persist
+        // 9. Persist
         await _cvRepository.AddAsync(cv, cancellationToken);
 
-        // 9. Save changes
+        // 10. Save changes
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        // 10. Return DTO
+        // 11. Return DTO
         return new CvDto(cv.Id, cv.OriginalFilename, cv.UploadedAt);
     }
 }
