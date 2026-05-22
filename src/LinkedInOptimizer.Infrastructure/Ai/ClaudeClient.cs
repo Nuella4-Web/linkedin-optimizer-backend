@@ -7,8 +7,8 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using LinkedInOptimizer.Application.Common.Interfaces;
-using LinkedInOptimizer.Application.Common.Options;
-using Microsoft.Extensions.Options;
+using LinkedInOptimizer.Infrastructure.Options;
+using Microsoft.Extensions.Configuration;
 using Polly;
 using Polly.Extensions.Http;
 
@@ -23,10 +23,10 @@ public sealed class ClaudeClient : IClaudeClient
     private readonly AnthropicOptions _options;
     private readonly IAsyncPolicy<HttpResponseMessage> _retryPolicy;
 
-    public ClaudeClient(IHttpClientFactory httpClientFactory, IOptions<AnthropicOptions> options)
+    public ClaudeClient(IHttpClientFactory httpClientFactory, IConfiguration configuration)
     {
         _httpClientFactory = httpClientFactory;
-        _options = options.Value;
+        _options = configuration.GetSection("Anthropic").Get<AnthropicOptions>() ?? new AnthropicOptions();
         _retryPolicy = HttpPolicyExtensions
             .HandleTransientHttpError()
             .OrResult(r => r.StatusCode == (HttpStatusCode)429)
@@ -85,7 +85,6 @@ public sealed class ClaudeClient : IClaudeClient
         };
 
         var json = JsonSerializer.Serialize(requestBody);
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         HttpResponseMessage response = await _retryPolicy.ExecuteAsync(async () =>
         {
