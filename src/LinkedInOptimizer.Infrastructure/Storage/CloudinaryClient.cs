@@ -2,8 +2,8 @@
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using LinkedInOptimizer.Application.Common.Interfaces;
-using LinkedInOptimizer.Application.Common.Options;
-using Microsoft.Extensions.Options;
+using LinkedInOptimizer.Infrastructure.Options;
+using Microsoft.Extensions.Configuration;
 
 namespace LinkedInOptimizer.Infrastructure.Storage;
 
@@ -11,9 +11,9 @@ public sealed class CloudinaryClient : ICloudinaryClient
 {
     private readonly Cloudinary _cloudinary;
 
-    public CloudinaryClient(IOptions<CloudinaryOptions> options)
+    public CloudinaryClient(IConfiguration configuration)
     {
-        var opts = options.Value;
+        var opts = configuration.GetSection("Cloudinary").Get<CloudinaryOptions>() ?? new CloudinaryOptions();
         _cloudinary = new Cloudinary(new Account(opts.CloudName, opts.ApiKey, opts.ApiSecret));
     }
 
