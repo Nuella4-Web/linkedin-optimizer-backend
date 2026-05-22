@@ -6,8 +6,8 @@ using System.Text;
 using System.Text.Json;
 using LinkedInOptimizer.Application.Common.Dtos;
 using LinkedInOptimizer.Application.Common.Interfaces;
-using LinkedInOptimizer.Application.Common.Options;
-using Microsoft.Extensions.Options;
+using LinkedInOptimizer.Infrastructure.Options;
+using Microsoft.Extensions.Configuration;
 
 namespace LinkedInOptimizer.Infrastructure.Payments;
 
@@ -18,10 +18,10 @@ public sealed class PaystackClient : IPaystackClient
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly PaystackOptions _options;
 
-    public PaystackClient(IHttpClientFactory httpClientFactory, IOptions<PaystackOptions> options)
+    public PaystackClient(IHttpClientFactory httpClientFactory, IConfiguration configuration)
     {
         _httpClientFactory = httpClientFactory;
-        _options = options.Value;
+        _options = configuration.GetSection("Paystack").Get<PaystackOptions>() ?? new PaystackOptions();
     }
 
     public async Task<PaystackInitResult> InitializeTransactionAsync(
